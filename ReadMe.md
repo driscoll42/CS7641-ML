@@ -1,5 +1,7 @@
 # CS7641-Machine Learning
 
+ * https://omscs.gatech.edu/cs-7641-machine-learning
+
 ### CS 7641 - Machine Learning @ GA Tech for OMSCS
 This is a 3-course Machine Learning Series, taught as a dialogue between Professors Charles Isbell (Georgia Tech) and Michael Littman (Brown University).
 
@@ -14,7 +16,6 @@ Ever wonder how Netflix can predict what movies you'll like? Or how Amazon knows
 * Reinforcement Learning
 
 Reinforcement Learning is the area of Machine Learning concerned with the actions that software agents ought to take in a particular environment in order to maximize rewards. You can apply Reinforcement Learning to robot control, chess, backgammon, checkers and other activities that a software agent can learn. Reinforcement Learning uses behaviorist psychology in order to achieve reward maximization.
- * https://omscs.gatech.edu/cs-7641-machine-learning
  
  
  
