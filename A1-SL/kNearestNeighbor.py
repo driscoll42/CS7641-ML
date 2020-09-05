@@ -2,17 +2,6 @@
 # https://www.freecodecamp.org/news/how-to-build-and-train-k-nearest-neighbors-ml-models-in-python/
 from sklearn.neighbors import NearestNeighbors, KNeighborsClassifier
 import numpy as np
-from sklearn.metrics import classification_report
-
-from sklearn.metrics import confusion_matrix
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.tree import export_graphviz
-from sklearn.model_selection import cross_val_score
-from sklearn.preprocessing import LabelEncoder
-import numpy as np
-import matplotlib.pyplot as plt
-import util as util
-from subprocess import call
 from sklearn.model_selection import GridSearchCV
 import time
 
@@ -41,15 +30,12 @@ def train_knn(filename, X_train, X_test, y_train, y_test, full_param=False, debu
                                return_train_score=True, n_jobs=-1, verbose=debug)
     grid_search.fit(X_train, y_train)
 
-    file = open("knn-" + filename + ".txt", "w")
     cvres = grid_search.cv_results_
     for mean_score, params in zip(cvres["mean_test_score"], cvres["params"]):
         file.writelines([str(mean_score), ' ', str(params), "\n"])
-
+    file.writelines(best_params)
     file.close()
 
-    best_params = grid_search.best_params_
-    # print(best_params)
     knn_classifier = KNeighborsClassifier()
     knn_classifier.set_params(**best_params)
 

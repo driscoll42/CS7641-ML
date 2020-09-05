@@ -2,21 +2,7 @@
 
 from sklearn.neural_network import MLPClassifier
 import numpy as np
-# https://scikit-learn.org/stable/modules/svm.html
-
-from sklearn import svm
-import numpy as np
-from sklearn.metrics import classification_report
-
-from sklearn.metrics import confusion_matrix
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.tree import export_graphviz
-from sklearn.model_selection import cross_val_score
-from sklearn.preprocessing import LabelEncoder
-import numpy as np
-import matplotlib.pyplot as plt
-import util as util
-from subprocess import call
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, OneHotEncoder
 from sklearn.model_selection import GridSearchCV
 import time
 
@@ -28,18 +14,21 @@ def train_NN(filename, X_train, X_test, y_train, y_test, full_param=False, debug
     if full_param:
         param_grid = [{'hidden_layer_sizes': [(50, 50, 50), (50, 100, 50), (100,)],
                        'activation'        : ['identity', 'logistic', 'tanh', 'relu'],
-                       'solver'            : ['lbfgs', 'sgd', 'adam'],
-                       'alpha'             : [0.0001, 0.0],
+                       'solver'            : [solver],  # 'lbfgs',
+                       'alpha'             : [0.0001, 0.0, 0.001, 0.01, 0.1],
                        'batch_size'        : ['auto'],
-                       'learning_rate'     : ['constant', 'invscaling', 'adaptive'],
                        'learning_rate_init': [0.001],
                        'max_iter'          : [1000],
                        'random_state'      : [1]
                        }]
+        if solver == 'sgd':
+            param_grid[0]['learning_rate'] = ['constant', 'invscaling', 'adaptive']  # Only used when solver='sgd'
+
     else:
         param_grid = [{'hidden_layer_sizes': [(50, 50, 50), (50, 100, 50), (100,)],
                        'activation'        : ['identity', 'logistic', 'tanh', 'relu'],
                        'max_iter'          : [10000],
+                       'early_stopping'    : [True],
                        'random_state'      : [1]
                        }]
 
@@ -49,15 +38,14 @@ def train_NN(filename, X_train, X_test, y_train, y_test, full_param=False, debug
                                return_train_score=True, n_jobs=-1, verbose=debug)
     grid_search.fit(X_train, y_train)
 
-    file = open("NN-" + filename + ".txt", "w")
+    grid_search.fit(scaler.fit_transform(X_train), y_train)
+
     cvres = grid_search.cv_results_
     for mean_score, params in zip(cvres["mean_test_score"], cvres["params"]):
         file.writelines([str(mean_score), ' ', str(params), "\n"])
-
+    file.writelines(best_params)
     file.close()
 
-    best_params = grid_search.best_params_
-    # print(best_params)
     nn_classifier = MLPClassifier()
     nn_classifier.set_params(**best_params)
 

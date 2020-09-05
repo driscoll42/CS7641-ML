@@ -5,13 +5,7 @@
 
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import AdaBoostClassifier
-from sklearn.tree import export_graphviz
-from sklearn.model_selection import cross_val_score
-from sklearn.preprocessing import LabelEncoder
 import numpy as np
-import matplotlib.pyplot as plt
-import util as util
-from subprocess import call
 from sklearn.model_selection import GridSearchCV
 import time
 
@@ -22,11 +16,11 @@ def train_BTree(filename, X_train, X_test, y_train, y_test, full_param=False, de
 
     if full_param:
         param_grid = [{'base_estimator__criterion'        : ['gini', 'entropy'],
-                       'base_estimator__max_depth'        : [2, 3, 4, 5, 6, 7, 8, 9, 10],
-                       'base_estimator__min_samples_split': [2, 3, 4, 5, 6, 7, 8, 9, 10],
-                       'base_estimator__min_samples_leaf' : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                       'base_estimator__max_features'     : ['auto', 'log2', None],
-                       'base_estimator__max_leaf_nodes'   : [2, 3, 4, 5, 6, 7, 8, 9, 10, None],
+                       'base_estimator__max_depth'        : [2, 3, 4, 5, 6, 7, 8, 9, 10, 10000],
+                       'base_estimator__min_samples_split': [2, 3, 5, 6, 8, 10],
+                       'base_estimator__min_samples_leaf' : [1, 2, 3, 5, 6, 8, 10],
+                       'base_estimator__max_features'     : ['log2', 'sqrt', 0.5, 0.9],
+                       'base_estimator__max_leaf_nodes'   : [2, 4, 5, 7, 10, 10000],
                        'base_estimator__ccp_alpha'        : [0.0, 0.005, 0.01, 0.015, 0.02, 0.025, 0.30, 0.35, 0.04],
                        "base_estimator__splitter"         : ["best", "random"],
                        "n_estimators"                     : [1, 50, 100, 150],
@@ -35,7 +29,7 @@ def train_BTree(filename, X_train, X_test, y_train, y_test, full_param=False, de
                        }]
     else:
         param_grid = [{'base_estimator__criterion'        : ['gini', 'entropy'],
-                       'base_estimator__max_depth'        : [3, 5, 7, 10],
+                       'base_estimator__max_depth'        : [3, 5, 7, 10, 100000],
                        'base_estimator__min_samples_split': [3, 5, 7, 10],
                        #'base_estimator__ccp_alpha'        : [0.0, 0.005, 0.015, 0.025, 0.35, 0.04],
                        "n_estimators"                     : [1, 50, 100, 150],
@@ -54,18 +48,12 @@ def train_BTree(filename, X_train, X_test, y_train, y_test, full_param=False, de
 
     grid_search.fit(X_train, y_train)
 
-    # scores = cross_val_score(tree, X_train, y_train, scoring="accuracy", cv=10)
-
-    # print("Scores:", scores)
-    # print("Mean:", scores.mean())
-    file = open("adaTree-" + filename + ".txt", "w")
     cvres = grid_search.cv_results_
     for mean_score, params in zip(cvres["mean_test_score"], cvres["params"]):
         file.writelines([str(mean_score), ' ', str(params), "\n"])
-
+    file.writelines(best_params)
     file.close()
 
-    best_params = grid_search.best_params_
     tree_classifier = AdaBoostClassifier(base_estimator=DTC)
     tree_classifier.set_params(**best_params)
 
