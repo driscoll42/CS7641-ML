@@ -6,6 +6,8 @@ import numpy as np
 from subprocess import call
 from sklearn.model_selection import GridSearchCV
 import time
+import util
+
 
 def create_DT_image(Dtree):
     # TODO: Make it dynamically named
@@ -17,7 +19,7 @@ def create_DT_image(Dtree):
     call(['dot', '-Tpng', 'Images\Dtree.dot', '-o', 'tree.png', '-Gdpi=600'])
 
 
-def train_DTree(filename, X_train, X_test, y_train, y_test, full_param=False, debug=False):
+def train_DTree(filename, X_train, X_test, y_train, y_test, full_param=False, debug=False, numFolds=10, njobs=-1, scalar=1):
     np.random.seed(1)
     start = time.time()
 
@@ -41,12 +43,15 @@ def train_DTree(filename, X_train, X_test, y_train, y_test, full_param=False, de
                        }]
 
     tree_classifier = DecisionTreeClassifier()
-    grid_search = GridSearchCV(tree_classifier, param_grid, cv=10,
+    grid_search = GridSearchCV(tree_classifier, param_grid, cv=numFolds,
                                scoring='accuracy',
-                               return_train_score=True, n_jobs=-1, verbose=debug)
+                               return_train_score=True, n_jobs=njobs, verbose=debug)
     grid_search.fit(X_train, y_train)
 
     cvres = grid_search.cv_results_
+    best_params = grid_search.best_params_
+
+    file = open("ParamTests\DTree-" + filename + "-" + str(scalar) + ".txt", "w")
     for mean_score, params in zip(cvres["mean_test_score"], cvres["params"]):
         file.writelines([str(mean_score), ' ', str(params), "\n"])
     file.writelines(best_params)
