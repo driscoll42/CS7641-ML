@@ -1,21 +1,51 @@
-# CS7641-Machine Learning
+# NOTE: If you are in CS 4641/7641 at Georgia Tech do NOT look further into this repository to prevent any possible Honor Code violation.
+
+The professors allow for public posting of code, but do not allow any code to be copied and reused if it were specifically written for the course anymore. The written report/analysis is *not* uploaded as that is an honor code violation to share.
+
+# CS 7641 - Machine Learning @ GA Tech for OMSCS
 
  * https://omscs.gatech.edu/cs-7641-machine-learning
 
-### CS 7641 - Machine Learning @ GA Tech for OMSCS
-This is a 3-course Machine Learning Series, taught as a dialogue between Professors Charles Isbell (Georgia Tech) and Michael Littman (Brown University).
+Inside this repository is the code I wrote for the Fall 2020 offering of CS 7641
 
-* Supervised Learning
+## Assignment 1 - Supervised Learning
 
-Supervised Learning is a machine learning task that makes it possible for your phone to recognize your voice, your email to filter spam, and for computers to learn a number of fascinating things. This sort of machine learning task is an important component in all kinds of technologies. From stopping credit card fraud; to finding faces in camera images; to recognizing spoken language - our goal is to give students the skills they need to apply supervised learning to these technologies and interpret their output. This is especially important for solving a range of data science problems.  
+Scikit's Implementations of five supervised learning algorithms on two datasets with different ML characteristics:
 
-* Unsupervised Learning
+* Decision Trees
+* k-Nearest Neighbor
+* Boosting (Adaboost)
+* Neural Networks
+* Support Vector Machines
 
-Ever wonder how Netflix can predict what movies you'll like? Or how Amazon knows what you want to buy, before you make a purchase? The answer can be found in Unsupervised Learning. Closely related to pattern recognition, Unsupervised Learning is about analyzing data and looking for patterns. It is an extremely powerful tool for identifying structure in data. This course focuses on how students can use Unsupervised Learning approaches - including randomized optimization, clustering, and feature selection and transformation - to find structure in unlabeled data.  
+## Assignment 2 - Randomized Optimization
 
-* Reinforcement Learning
+Mlrose implementations of four randomized optimization algorithms on three optimization problems demonstrating the strengths of the algorithms and then using the algorithms to train the neural network from Assignment 1. 
 
-Reinforcement Learning is the area of Machine Learning concerned with the actions that software agents ought to take in a particular environment in order to maximize rewards. You can apply Reinforcement Learning to robot control, chess, backgammon, checkers and other activities that a software agent can learn. Reinforcement Learning uses behaviorist psychology in order to achieve reward maximization.
- 
- 
- 
+* Randomized Hill-Climbing
+* Simulated Annealing
+* Genetic Algorithms
+* Mutual-Information-Maximizing Input Clustering (MIMIC)
+
+## Assignment 3 - Unsupervised Learning
+
+Scikit's implementations of two clustering and four dimensionality reduction algorithms on the datasets from Assignment 1 and then clustering and dimensionality reduction on one of the datasets from Assignment 1 to run a neural network.   
+
+Clustering
+* K-means Clustering
+* Expectation Maximization
+
+Dimensionality Reduction
+* Principal Component Analysis
+* Independent Component Analysis
+* Randomized Projection
+* Locally Linear Embedding
+
+
+## Assignment 4 - Reinforcement Learning
+
+Implementations for three Reinforcement Learning algorithms borrowed from O'Reilly and pymdptoolbox on two MDPs. 
+
+* Value Iteration
+* Policy Iteration
+* Q-Learning

@@ -1,16 +1,15 @@
 # https://scikit-learn.org/stable/modules/neural_networks_supervised.html
 
-from sklearn.neural_network import MLPClassifier
 import numpy as np
-from sklearn.preprocessing import StandardScaler, MinMaxScaler, OneHotEncoder, label_binarize
+import util
 from sklearn.model_selection import GridSearchCV
+from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import roc_auc_score
 import time
-import util
 
 
 def train_NN(filename, X_train, X_test, y_train, y_test, solver='adam', full_param=False, debug=False, numFolds=10,
-             njobs=-1, scalar=1, make_graphs=False, pNN={}):
+             njobs=-1, scalar=1, make_graphs=False, pNN={}, nolegend=False):
     np.random.seed(1)
     algo = 'Neural Network'
 
@@ -18,14 +17,14 @@ def train_NN(filename, X_train, X_test, y_train, y_test, solver='adam', full_par
     if len(pNN) == 0:
         if full_param:
             param_grid = [{'hidden_layer_sizes': [
-                # (8), (16), (32),
-                # (8, 8), (16, 16), (32, 32),
-                # (8, 8, 8), (16, 16, 16), (32, 32, 32),
-                #(128,), (128, 128), (128, 128, 128), (128, 128, 128, 128)],
-                #(256,), (256, 256),
-                #(512,), (512, 512)],
-                (256, 256, 256), (256, 256, 256, 256),(512, 512, 512), (512, 512, 512, 512)],
-                'activation'                   : ['logistic', 'tanh', 'relu'],  #'identity',
+                (8), (16), (32),
+                (8, 8), (16, 16), (32, 32),
+                (8, 8, 8), (16, 16, 16), (32, 32, 32),
+                (128,), (128, 128), (128, 128, 128), (128, 128, 128, 128),
+                (256,), (256, 256),
+                (512,), (512, 512),
+                (256, 256, 256), (256, 256, 256, 256), (512, 512, 512), (512, 512, 512, 512)],
+                'activation'                   : ['logistic', 'tanh', 'relu'],  # 'identity',
                 'solver'                       : [solver],  # 'lbfgs',
                 'alpha'                        : [0.0, 0.0001, 0.001, 0.01, 0.1],
                 'batch_size'                   : ['auto'],
@@ -69,37 +68,69 @@ def train_NN(filename, X_train, X_test, y_train, y_test, solver='adam', full_par
         nn_classifier = MLPClassifier()
         nn_classifier.set_params(**pNN)
 
+    start = time.time()
     nn_classifier.fit(X_train, y_train)
-    train_score = nn_classifier.score(X_train, y_train)
-    test_score = nn_classifier.score(X_test, y_test)
+    print('NN Fit Time: ', time.time() - start)
+    start = time.time()
 
-    #ytp = nn_classifier.predict(X_train)
-    #print(roc_auc_score(y_train, ytp, multi_class='ovr', average='weighted'))
+    y_prob = nn_classifier.predict_proba(X_train)
+    train_score = roc_auc_score(y_train, y_prob, multi_class="ovr", average="weighted")
+    print('NN Train Score Time: ', time.time() - start)
 
-    #y_pred = nn_classifier.predict(X_test)
-    #print(roc_auc_score(y_test, y_pred, multi_class='ovr', average='weighted'))
+    start = time.time()
+
+    y_prob = nn_classifier.predict_proba(X_test)
+    test_score = roc_auc_score(y_test, y_prob, multi_class="ovr", average="weighted")
+    print('NN Test Score Time: ', time.time() - start)
+
+    test_class = MLPClassifier()
+    test_class.set_params(**pNN)
 
     if make_graphs:
-        # util.compute_roc(algo, 'n_neighbors', [1, 2, 3, 4, 5, 6, 7,8,9, 10, 15, 20, 25, 30, 35, 40, 50], X_train, y_train, X_test, y_test, knn_classifier,filename[:-4])
-
         # computer Model Complexity/Validation curves
-        # util.compute_vc(algo, 'hidden_layer_sizes', [
-        #    (8), (16), (32),
-        #    (8, 8), (16, 16), (32, 32),
-        #    (8, 8, 8), (16, 16, 16), (32, 32, 32),
-        #    (128,), (128, 128), (128, 128, 128), (128, 128, 128, 128),
-        #    (256,), (256, 256), (256, 256, 256), (256, 256, 256, 256),
-        #    (512,), (512, 512), (512, 512, 512), (512, 512, 512, 512)], X_train, y_train, nn_classifier, filename[:-4], log=False, njobs=njobs)
-        util.compute_vc(algo, 'activation', ['identity', 'logistic', 'tanh', 'relu'], X_train, y_train, nn_classifier,
-                        filename[:-4], log=False, njobs=njobs)
-        util.compute_vc(algo, 'solver', ['adam', 'sgd', 'lbfgs'], X_train, y_train, nn_classifier, filename[:-4],
-                        log=False, njobs=njobs)
+        util.plot_learning_curve(nn_classifier, algo, filename[:-4], X_train, y_train, ylim=(0.0, 1.05), cv=10,
+                                 n_jobs=njobs, debug=debug)
+        util.compute_vc(algo, 'activation', ['identity', 'logistic', 'tanh', 'relu'],
+                        X_train, y_train, X_test, y_test, nn_classifier, filename[:-4], test_class, pNN, log=False,
+                        njobs=njobs, debug=debug)
+        util.compute_vc(algo, 'max_iter',
+                        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400, 500, 600,
+                         700, 800, 900, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000], X_train,
+                        y_train, X_test, y_test, nn_classifier, filename[
+                                                                :-4], test_class, pNN, log=True, njobs=njobs,
+                        debug=debug)
+        util.compute_vc(algo, 'hidden_layer_sizes', [
+
+            (1), (2), (4), (8), (16), (32), (64), (128), (256), (512)
+        ], X_train, y_train, X_test, y_test, nn_classifier, filename[:-4], test_class, pNN, log=False, njobs=njobs,
+                        debug=debug, fString=True, extraText=' 1-Layer', rotatex=True, nolegend=nolegend)
+
+
+        util.compute_vc(algo, 'hidden_layer_sizes', [
+            (1, 1), (2, 2), (4, 4), (8, 8), (16, 16), (32, 32), (64, 64), (128, 128), (256, 256), (512, 512),
+        ], X_train, y_train, X_test, y_test, nn_classifier, filename[:-4], test_class, pNN, log=False, njobs=njobs,
+                        debug=debug, fString=True, extraText=' 2-Layer', rotatex=True, nolegend=nolegend)
+        util.compute_vc(algo, 'hidden_layer_sizes', [
+            (1, 1, 1), (2, 2, 2), (4, 4, 4), (8, 8, 8), (16, 16, 16), (32, 32, 32), (64, 64, 64), (128, 128, 128),
+            (256, 256, 256), (512, 512, 512),
+        ], X_train, y_train, X_test, y_test, nn_classifier, filename[:-4], test_class, pNN, log=False, njobs=njobs,
+                        debug=debug, fString=True, extraText=' 3-Layer', rotatex=True, nolegend=nolegend)
+        util.compute_vc(algo, 'hidden_layer_sizes', [
+            (1, 1, 1, 1), (2, 2, 2, 2), (4, 4, 4, 4), (8, 8, 8, 8), (16, 16, 16, 16), (32, 32, 32, 32),
+            (64, 64, 64, 64), (128, 128, 128, 128), (256, 256, 256, 256), (512, 512, 512, 512)
+        ], X_train, y_train, X_test, y_test, nn_classifier, filename[:-4], test_class, pNN, log=False, njobs=njobs,
+                        debug=debug, fString=True, extraText=' 4-Layer', rotatex=True, nolegend=nolegend)
+
+        util.compute_vc(algo, 'solver', ['adam', 'sgd', 'lbfgs'],
+                        X_train, y_train, X_test, y_test, nn_classifier, filename[:-4], test_class, log=False,
+                        njobs=njobs)
         util.compute_vc(algo, 'alpha',
-                        [0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000, 100000,
-                         1000000],
-                        X_train, y_train, nn_classifier, filename[:-4], njobs, log=True, njobs=njobs)
+                        [0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.05, 0.1, 0.5, 1, 5, 10, 50, 100, 500,
+                         1000, 5000, 10000, 100000, 1000000], X_train, y_train, X_test, y_test, nn_classifier,
+                        filename[:-4], test_class, pNN, log=True, njobs=njobs, debug=debug)
 
         if solver == 'sgd':
-            util.compute_vc(algo, 'learning_rate', ['constant', 'invscaling', 'adaptive'], X_train, y_train,
-                            nn_classifier, filename[:-4], log=False, njobs=njobs)
-    return time.time() - start, round(train_score, 4), round(test_score, 4)
+            util.compute_vc(algo, 'learning_rate', ['constant', 'invscaling', 'adaptive'], X_train, y_train, X_test,
+                            y_test, nn_classifier, filename[:-4], test_class, log=True, njobs=njobs)
+
+        return time.time() - start, round(train_score, 4), round(test_score, 4)
